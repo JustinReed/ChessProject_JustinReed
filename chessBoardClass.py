@@ -83,8 +83,7 @@ class WhitePawn(Piece):
     def __str__(self):
         return "WP"  # stands for white pawn
 
-for i in range(8):
-    CurrentBoard.getArray()[1][i] = WhitePawn([i, 1])
+
 
 
 class BlackPawn(Piece):
@@ -105,8 +104,7 @@ class BlackPawn(Piece):
     def __str__(self):
         return "BP"  # stands for white pawn
 
-for i in range(8):
-    CurrentBoard.getArray()[6][i] = BlackPawn([i, 6])
+
 
 class Rook(Piece):
     def __init__(self, coords: list[int], color):
@@ -114,12 +112,12 @@ class Rook(Piece):
 
     def checkValidMove(self, newCoords):
         if self.yPos - newCoords[1] == 0 and self.xPos - newCoords[0] != 0: # rook moves along x-axis
-            for i in range(min(self.xPos, newCoords[0]) + 1, max(self.xPos, newCoords[0]) - 1): # check if rook intersects piece while trying to move to new square
+            for i in range(min(self.xPos, newCoords[0]) + 1, max(self.xPos, newCoords[0])): # check if rook intersects piece while trying to move to new square
                 if self.checkCapture([i, self.yPos]):
                     return False
             return True
         elif self.xPos - newCoords[0] == 0 and self.yPos - newCoords[1] != 0: # rook moves along y-axis
-            for i in range(min(self.yPos, newCoords[1]) + 1, max(self.yPos, newCoords[1]) - 1):
+            for i in range(min(self.yPos, newCoords[1]) + 1, max(self.yPos, newCoords[1])):
                 if self.checkCapture([self.xPos, i]):
                     return False
             return True
@@ -134,34 +132,82 @@ class Rook(Piece):
         elif self.color == "Black":
             return "BR"
 
-CurrentBoard.getArray()[0][0] = Rook([0, 0], "White")
-CurrentBoard.getArray()[0][7] = Rook([7, 0], "White")
+class Bishop(Piece):
+    def __init__(self, coords: list[int], color):
+        super().__init__(coords, color)
 
-CurrentBoard.getArray()[7][0] = Rook([0, 7], "Black")
-CurrentBoard.getArray()[7][7] = Rook([7, 7], "Black")
+    def checkValidMove(self, newCoords):
+        xDisplacement: int = abs(newCoords[0] - self.xPos)
+        yDisplacement: int = abs(newCoords[1] - self.yPos)
+        if xDisplacement - yDisplacement == 0:  # checks if bishop moves diagonally
+            if self.xPos > newCoords[0] and self.yPos > newCoords[1]:  # Bishop moves up and right
+                for i in range(newCoords[0] + 1, self.xPos):
+                    if self.checkCapture([i, i]):
+                        return False
+            elif self.xPos > newCoords[0] and self.yPos < newCoords[1]: # Bishop moves down and right
+                for i in range(newCoords[0] + 1, self.xPos):
+                    if self.checkCapture([-i, i]):
+                        return False
+            elif self.xPos < newCoords[0] and self.yPos > newCoords[1]: # Bishop moves up and left
+                for i in range(newCoords[0] + 1, self.xPos):
+                    if self.checkCapture([i, -i]):
+                        return False
+            elif self.xPos < newCoords[0] and self.yPos < newCoords[1]: # Bishop moves down and left
+                for i in range(newCoords[0] + 1, self.xPos):
+                    if self.checkCapture([-i, -i]):
+                        return False
+            return True
+        else:
+            return False
+
+    def __str__(self):
+        if self.color == "White":
+            return "WB"  # stands for white pawn
+        elif self.color == "Black":
+            return "BB"
+
+def boardSetup():
+    for i in range(8):
+        CurrentBoard.getArray()[1][i] = WhitePawn([i, 1])
+    for i in range(8):
+        CurrentBoard.getArray()[6][i] = BlackPawn([i, 6])
+
+    CurrentBoard.getArray()[0][0] = Rook([0, 0], "White")
+    CurrentBoard.getArray()[0][7] = Rook([7, 0], "White")
+    CurrentBoard.getArray()[7][0] = Rook([0, 7], "Black")
+    CurrentBoard.getArray()[7][7] = Rook([7, 7], "Black")
+
+    CurrentBoard.getArray()[0][2] = Bishop([2, 0], "White")
+    CurrentBoard.getArray()[0][5] = Bishop([5, 0], "White")
+    CurrentBoard.getArray()[7][2] = Bishop([2, 7], "Black")
+    CurrentBoard.getArray()[7][5] = Bishop([5, 7], "Black")
 
 
 
 
-
-
+boardSetup()
 
 printChessBoard()
-activePiece = CurrentBoard.getArray()[1][3]
+activePiece = CurrentBoard.getArray()[1][3]  # move pawn
 activePiece.movePiece([3, 2])
 activePiece.movePiece([3, 3])
 activePiece.movePiece([3, 4])
+
+
+
 printChessBoard()
-
-
-printChessBoard()
-
-activePiece = CurrentBoard.getArray()[0][0]
+activePiece = CurrentBoard.getArray()[0][0]  # move rook
 activePiece.movePiece([3, 0])
-activePiece.movePiece([3, 3])
-activePiece.movePiece([5, 3])
 printChessBoard()
 
-activePiece.movePiece([6, 4])
+activePiece = CurrentBoard.getArray()[0][2]
 
-activePiece.movePiece([11, 3])
+activePiece.movePiece([4, 2])
+printChessBoard()
+
+activePiece = CurrentBoard.getArray()[6][3]
+activePiece.movePiece([3, 5])
+
+activePiece = CurrentBoard.getArray()[7][2]
+activePiece.movePiece([6, 3])
+printChessBoard()
