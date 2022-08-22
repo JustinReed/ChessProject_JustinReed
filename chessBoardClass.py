@@ -36,6 +36,7 @@ class Piece:
         self.xPos: int = coords[0]
         self.yPos: int = coords[1]
         self.color = color
+        self.moved = False  # tracks if piece has moved, relevant for determining castling legality
 
     def checkCapture(self, newCoords) -> bool:
         if CurrentBoard.getArray()[newCoords[1]][newCoords[0]] != []:
@@ -44,11 +45,12 @@ class Piece:
             return False
 
     def movePiece(self, newCoords: list[int]) -> bool:
-
-        if newCoords[0] not in range(8) or newCoords[1] not in range(8):
+        if newCoords[0] not in range(8) or newCoords[1] not in range(8):  # piece tries to move out of bounds
             print("error")
             return False
-        elif self.checkValidMove(newCoords):
+        if not self.moved:
+            self.moved = True
+        if self.checkValidMove(newCoords):
             CurrentBoard.getArray()[self.yPos][self.xPos] = []
             self.coords = newCoords
             self.xPos = newCoords[0]
@@ -65,6 +67,8 @@ class Piece:
 class WhitePawn(Piece):
     """
     White Pawns need a move-set distinct from black pawns as they move in opposite directions
+
+    Remember to add en passant and promotion
     """
     def __init__(self, coords: list[int]):
         super().__init__(coords, "White")
@@ -91,6 +95,9 @@ class BlackPawn(Piece):
         super().__init__(coords, "Black")
 
     def checkValidMove(self, newCoords: list[int]) -> bool:
+        if CurrentBoard.getArray()[newCoords[1]][newCoords[0]] != []:
+            if CurrentBoard.getArray()[newCoords[1]][newCoords[0]].color == self.color: # piece cannot move to square occupied by piece of same color
+                return False
         if abs(newCoords[0] - self.coords[0]) == 1 and newCoords[1] - self.coords[1] == -1: # pawn captures diagonally
             return self.checkCapture(newCoords)
         elif newCoords[0] - self.coords[0] == 0:  # pawn moves forward
@@ -110,7 +117,11 @@ class Rook(Piece):
     def __init__(self, coords: list[int], color):
         super().__init__(coords, color)
 
+
     def checkValidMove(self, newCoords):
+        if CurrentBoard.getArray()[newCoords[1]][newCoords[0]] != []:
+            if CurrentBoard.getArray()[newCoords[1]][newCoords[0]].color == self.color:  # piece cannot move to square occupied by piece of same color
+                return False
         if self.yPos - newCoords[1] == 0 and self.xPos - newCoords[0] != 0: # rook moves along x-axis
             for i in range(min(self.xPos, newCoords[0]) + 1, max(self.xPos, newCoords[0])): # check if rook intersects piece while trying to move to new square
                 if self.checkCapture([i, self.yPos]):
@@ -137,6 +148,10 @@ class Bishop(Piece):
         super().__init__(coords, color)
 
     def checkValidMove(self, newCoords):
+        if CurrentBoard.getArray()[newCoords[1]][newCoords[0]] != []:
+            if CurrentBoard.getArray()[newCoords[1]][newCoords[0]].color == self.color: # piece cannot move to square occupied by piece of same color
+                return False
+
         xDisplacement: int = abs(newCoords[0] - self.xPos)
         yDisplacement: int = abs(newCoords[1] - self.yPos)
         if xDisplacement - yDisplacement == 0:  # checks if bishop moves diagonally
@@ -166,6 +181,35 @@ class Bishop(Piece):
         elif self.color == "Black":
             return "BB"
 
+class Knight(Piece):
+    def __init__(self, coords: list[int], color):
+        super().__init__(coords, color)
+
+    def checkValidMove(self, newCoords):
+        if CurrentBoard.getArray()[newCoords[1]][newCoords[0]] != []:
+            if CurrentBoard.getArray()[newCoords[1]][newCoords[0]].color == self.color: # piece cannot move to square occupied by piece of same color
+                return False
+
+        xDisplacement: int = abs(newCoords[0] - self.xPos)
+        yDisplacement: int = abs(newCoords[1] - self.yPos)
+        if xDisplacement == 2 and yDisplacement == 1:
+            return True
+        elif xDisplacement == 1 and yDisplacement == 2:
+            return True
+        else:
+            return False
+
+    def __str__(self):
+        if self.color == "White":
+            return "WN"  # stands for white pawn
+        elif self.color == "Black":
+            return "BN"
+
+class Queen(Piece):
+    def __init__(self, coords: list[int], color):
+        super().__init__(coords, color)
+
+
 def boardSetup():
     for i in range(8):
         CurrentBoard.getArray()[1][i] = WhitePawn([i, 1])
@@ -177,10 +221,16 @@ def boardSetup():
     CurrentBoard.getArray()[7][0] = Rook([0, 7], "Black")
     CurrentBoard.getArray()[7][7] = Rook([7, 7], "Black")
 
+    CurrentBoard.getArray()[0][1] = Knight([1, 0], "White")
+    CurrentBoard.getArray()[0][6] = Knight([6, 0], "White")
+    CurrentBoard.getArray()[7][1] = Knight([1, 7], "Black")
+    CurrentBoard.getArray()[7][6] = Knight([6, 7], "Black")
+
     CurrentBoard.getArray()[0][2] = Bishop([2, 0], "White")
     CurrentBoard.getArray()[0][5] = Bishop([5, 0], "White")
     CurrentBoard.getArray()[7][2] = Bishop([2, 7], "Black")
     CurrentBoard.getArray()[7][5] = Bishop([5, 7], "Black")
+
 
 
 
@@ -190,24 +240,15 @@ boardSetup()
 printChessBoard()
 activePiece = CurrentBoard.getArray()[1][3]  # move pawn
 activePiece.movePiece([3, 2])
-activePiece.movePiece([3, 3])
-activePiece.movePiece([3, 4])
+
 
 
 
 printChessBoard()
-activePiece = CurrentBoard.getArray()[0][0]  # move rook
-activePiece.movePiece([3, 0])
-printChessBoard()
-
 activePiece = CurrentBoard.getArray()[0][2]
-
-activePiece.movePiece([4, 2])
+activePiece.movePiece([7, 5])
+activePiece.movePiece([6, 6])
+activePiece.movePiece([1, 1])
 printChessBoard()
 
-activePiece = CurrentBoard.getArray()[6][3]
-activePiece.movePiece([3, 5])
 
-activePiece = CurrentBoard.getArray()[7][2]
-activePiece.movePiece([6, 3])
-printChessBoard()
